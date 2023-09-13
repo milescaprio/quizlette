@@ -4,13 +4,16 @@ import random
 def nest(*fns):
     #reduce(fun, seq, initial) calls fun of each pair of elements in seq; pushing to the left and moving the next one in
     #Here we are calling each function in fns as the sequence, so we need to manually feed the function into the function
-    return lambda x, y: reduce(lambda v, f: f(v), fns, x)
+    return lambda a : reduce(lambda x, y : y(x), fns, a)
+    def iter_fn(x, y, *args):
+        for i in args:
+            fns[i] = fns[i](fns[i+1])
 
-def lowercased(a, b):
-    return a.lower() == b.lower()
+def lowercased(a):
+    return a.lower()
 
-def stripped(a, b):
-    return a.strip() == b.strip()
+def stripped(a):
+    return a.strip()
 
 class QuestionType:
     FRQ = 0
