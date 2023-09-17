@@ -63,10 +63,12 @@ class Game:
     do_save = True
     quit_keywords = ["Quit", "q"]
     override_keywords = ["Override", "o"]
-    def __init__(self, questions, fn, okeywords = ["Override", "o"], qkeywords = ["Quit", "q"]):
+    allow_overrides = True
+    def __init__(self, questions, fn, okeywords = ["Override", "o"], qkeywords = ["Quit", "q"], allow_overrides = True):
         self.questions = questions
         self.fn = fn
         self.override_keywords = okeywords
+        self.allow_overrides = allow_overrides
         self.quit_keywords = qkeywords
 
     def __del__(self):
@@ -86,11 +88,10 @@ class Game:
         for q in self.quit_keywords:
             qstr += '"' + q + '" or '
         qstr = qstr[:-4]
-        print("Type " + ostr + " at any point to make your answer to the last question correct.")
-        print("(The purpose of this program is to help you learn, not to test you, so discounting.")
-        print("certain mistakes is up to you. However, it's not recommended to override unless")
-        print("there was actually a good reason.)")
-        print("Type "+qstr+" at any point to quit the game, and save your progress")
+        if self.allow_overrides:
+            print("Type " + ostr + " at any point to change your last answer to be correct.")
+            print("(This program is to help you learn, not to test you. Your choice.)")
+        print("Type " + qstr + " at any point to quit the game, and save your progress")
         self.question_scores = [0 for i in self.questions]
         if os.path.isfile(save_filename(self.fn)):
             print("It looks like you weren't done... would you like to attempt to continue where you left off (load scores from file)?")
@@ -115,9 +116,9 @@ class Game:
             questions_cache.append(question)
             if question.question_type == QuestionType.FRQ:
                 answer = input(question.term+": ")
-                if answer.lower().strip() == "quit" or answer.lower().strip() == "q":
+                if answer.lower().strip() in self.quit_keywords:
                     return
-                elif answer.lower().strip() == "override":
+                elif answer.lower().strip() in self.override_keywords and self.allow_overrides:
                     self.question_scores[questions_cache[-2]] += 2
                     print("Overrided")
                 if question.answer_check(answer, question.definition):
@@ -138,9 +139,9 @@ class Game:
                 print("C: " + answers[2])
                 print("D: " + answers[3])
                 answer = input("Answer: ")
-                if answer.lower().strip() == "quit" or answer.lower().strip() == "q":
+                if answer.lower().strip() in self.quit_keywords:
                     return
-                elif answer.lower().strip() == "override":
+                elif answer.lower().strip() in self.override_keywords and self.allow_overrides:
                     self.question_scores[questions_cache[-2]] += 2
                     print("Overrided")
                 if answer.lower().strip() == "abcd"[answers.index(question.definition)]:
