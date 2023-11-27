@@ -146,9 +146,15 @@ class Game:
                     if self.question_scores[self.questions.index(question)] < self.worst_hole:
                         self.question_scores[self.questions.index(question)] = self.worst_hole
                     if self.repeat_probability(self.question_scores[self.questions.index(question)], question.reinforcements_needed) > random.random():
+                        i = 0
                         a = input("Rewrite the answer: ")
-                        while a != question.definition:
+                        while a != question.definition and i < 3:
                             a = input("Oops! Try again! Rewrite the answer: ")
+                            if answer.lower().strip() in self.quit_keywords:
+                                return
+                            i+=1
+                        if i >= 3:
+                            print("Moving")
             elif question.question_type == QuestionType.MCQ:
                 answers = random.sample(question.wrongAnswers, question.answer_count - 1)
                 answers.append(question.definition)
