@@ -35,18 +35,20 @@ class Question:
     answer_check = lambda a, b : a == b # Only for FRQ
     question_type = QuestionType.MCQ
     reinforcements_needed = 3
+    end_hint = None
     def MCQ(term, definition, wrongAnswers, answer_count = 4, reinforcements_needed = 3):
         return Question(term, definition, QuestionType.MCQ, answer_count, wrongAnswers, reinforcements_needed)
 
-    def FRQ(term, definition, answer_check = lambda a, b : a == b, reinforcements_needed = 3):
-        return Question(term, definition, QuestionType.FRQ, answer_check = answer_check, reinforcements_needed = reinforcements_needed)
+    def FRQ(term, definition, answer_check = lambda a, b : a == b, reinforcements_needed = 3, end_hint = None):
+        return Question(term, definition, QuestionType.FRQ, answer_check = answer_check, reinforcements_needed = reinforcements_needed, end_hint = end_hint)
 
-    def __init__(self, term, definition, questiontype, answer_count = 4, wrongAnswers=[], answer_check=lambda a, b : a == b, reinforcements_needed=3):
+    def __init__(self, term, definition, questiontype, answer_count = 4, wrongAnswers=[], answer_check=lambda a, b : a == b, reinforcements_needed=3, end_hint = None):
         self.term = term
         self.definition = definition
         self.question_type = questiontype
         self.wrongAnswers = wrongAnswers
         self.answer_check = answer_check
+        self.end_hint = end_hint
     def with_answer_check_function(self, answer_check):
         copy = self
         copy.answer_check = answer_check
@@ -64,6 +66,11 @@ class Game:
     quit_keywords = ["Quit", "q"]
     override_keywords = ["Override", "o"]
     allow_overrides = True
+    repeat_probability = lambda s, r : 0.0
+    between_question_gap = "" #For double spacing
+    #TODO make this interface and similar customizations
+    #much more user friendly it's pretty much a hack at this point also I really hate lambdas
+    worst_hole = -1
     def __init__(self, questions, fn, okeywords = ["Override", "o"], qkeywords = ["Quit", "q"], allow_overrides = True):
         self.questions = questions
         self.fn = fn
@@ -71,7 +78,7 @@ class Game:
         self.allow_overrides = allow_overrides
         self.quit_keywords = qkeywords
 
-    def __del__(self):
+    def cleanup(self):
         if self.fn is not None and self.do_save:
             with open(save_filename(self.fn), "w") as f:
                 f.write("s = " + str(self.question_scores) + "\n")
@@ -79,7 +86,7 @@ class Game:
     def add(self, question):
         self.questions.append(question)
 
-    def run(self):
+    def mainloop(self):
         ostr = ""
         for o in self.override_keywords:
             ostr += '"' + o + '" or '
@@ -110,29 +117,44 @@ class Game:
         questions_cache = []
         while True:
             question = random.choice(self.questions)
-            if self.question_scores[self.questions.index(question)] == question.reinforcements_needed:
+            if self.question_scores[self.questions.index(question)] >= question.reinforcements_needed:
                 continue
                 # Future: add better method for learning besides random question selection
             questions_cache.append(question)
             if question.question_type == QuestionType.FRQ:
+                print(self.between_question_gap)
                 answer = input(question.term+": ")
                 if answer.lower().strip() in self.quit_keywords:
                     return
                 elif answer.lower().strip() in self.override_keywords and self.allow_overrides:
-                    self.question_scores[questions_cache[-2]] += 2
+                    self.question_scores[self.questions.index(questions_cache[-2])] += 2
                     print("Overrided")
+                    if question.end_hint is not None: 
+                        print("Correct! End hint:", question.end_hint)
+                    if self.question_scores[self.questions.index(question)] == question.reinforcements_needed:
+                        print("You have mastered " + question.term + ", with {} points".format(question.reinforcements_needed))
+                    answer = input(question.term+": ")
                 if question.answer_check(answer, question.definition):
                     self.question_scores[self.questions.index(question)] += 1
+                    if question.end_hint is not None: 
+                        print("Correct! End hint:", question.end_hint)
                     if self.question_scores[self.questions.index(question)] == question.reinforcements_needed:
                         print("You have mastered " + question.term + ", with {} points".format(question.reinforcements_needed))
                 else:
                     print("Incorrect, it was: " + question.definition)
                     self.question_scores[self.questions.index(question)] -= 1
+                    if self.question_scores[self.questions.index(question)] < self.worst_hole:
+                        self.question_scores[self.questions.index(question)] = self.worst_hole
+                    if self.repeat_probability(self.question_scores[self.questions.index(question)], question.reinforcements_needed) > random.random():
+                        a = input("Rewrite the answer: ")
+                        while a != question.definition:
+                            a = input("Oops! Try again! Rewrite the answer: ")
             elif question.question_type == QuestionType.MCQ:
                 answers = random.sample(question.wrongAnswers, question.answer_count - 1)
                 answers.append(question.definition)
                 random.shuffle(answers)
                 answer = answers.index(question.definition)
+                print(self.between_question_gap)
                 print(question.term + ": ")
                 print("A: " + answers[0])
                 print("B: " + answers[1])
@@ -144,6 +166,8 @@ class Game:
                 elif answer.lower().strip() in self.override_keywords and self.allow_overrides:
                     self.question_scores[questions_cache[-2]] += 2
                     print("Overrided")
+                    if self.question_scores[self.questions.index(question)] == question.reinforcements_needed:
+                        print("You have mastered " + question.term + ", with {} points".format(question.reinforcements_needed))
                 if answer.lower().strip() == "abcd"[answers.index(question.definition)]:
                     self.question_scores[self.questions.index(question)] += 1
                     if self.question_scores[self.questions.index(question)] == question.reinforcements_needed:
@@ -151,3 +175,8 @@ class Game:
                 else:
                     self.question_scores[self.questions.index(question)] -= 1
                     print("Incorrect, it was: " + question.definition)
+                    if self.question_scores[self.questions.index(question)] < self.worst_hole:
+                        self.question_scores[self.questions.index(question)] = self.worst_hole
+    def run(self):
+        self.mainloop()
+        self.cleanup()
