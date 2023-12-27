@@ -1,7 +1,20 @@
+#TODO:
+#Passing sections of vocab; not all at once
+#Selectional studying: choose which flashcards to study
+#Other modes
+
 from functools import reduce
 import importlib
 import random
 import os
+
+import unicodedata
+def accents_removed(s):
+    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+    #Credit to 
+    #https://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-normalize-in-a-python-unicode-string
+    #By oefe Feb 5, 2009
+    #For this function
 
 def nest(*fns):
     #Reduce(fun, seq, initial) calls fun of each pair of elements in seq; pushing to the left and moving the next one in
@@ -13,6 +26,7 @@ def lowercased(a):
 
 def stripped(a):
     return a.strip()
+
 
 def filtered_equals(filter_fn):
     return lambda a, b : filter_fn(a) == filter_fn(b)
@@ -148,13 +162,13 @@ class Game:
                     if self.repeat_probability(self.question_scores[self.questions.index(question)], question.reinforcements_needed) > random.random():
                         i = 0
                         a = input("Rewrite the answer: ")
-                        while a != question.definition and i < 3:
+                        while a != question.definition and a != "c" and i < 3:
                             a = input("Oops! Try again! Rewrite the answer: ")
                             if answer.lower().strip() in self.quit_keywords:
                                 return
                             i+=1
                         if i >= 3:
-                            print("Moving")
+                            print("Moving on")
             elif question.question_type == QuestionType.MCQ:
                 answers = random.sample(question.wrongAnswers, question.answer_count - 1)
                 answers.append(question.definition)

@@ -4,7 +4,7 @@ fn = "apspanish_unit2"
 print("Answer all questions in the masculine form if both are possible.")
 questions = Game([], fn)
 questions.worst_hole = -1
-questions.repeat_probability = lambda a, b : 1.0  
+questions.repeat_probability = lambda a, b : 0.0  
 
 questions.add(Question.FRQ("heritage"             ,       "el acervo",                 filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("town"                 ,       "la aldea",                  filtered_equals(nest(stripped, lowercased))))
@@ -14,7 +14,7 @@ questions.add(Question.FRQ("approval"             ,       "aprobación",        
 questions.add(Question.FRQ("assimilation"         ,       "la asimilación",            filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("subject/matter/issue" ,       "el asunto",                 filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("lack"                 ,       "la carencia",               filtered_equals(nest(stripped, lowercased))))
-questions.add(Question.FRQ("social class"         ,       "la  clase socioeconómica",  filtered_equals(nest(stripped, lowercased))))
+questions.add(Question.FRQ("social class"         ,       "la clase socioeconómica",  filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("behavior"             ,       "el comportamiento",         filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("coexistence"          ,       "la convivencia",            filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("right"                ,       "el derecho",                filtered_equals(nest(stripped, lowercased))))
@@ -50,7 +50,7 @@ questions.add(Question.FRQ("to promote"           ,       "promover",           
 questions.add(Question.FRQ("to reject"            ,       "rechazar",                  filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("to recognize"         ,       "reconocer",                 filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("to endure"            ,       "sobrellevar",               filtered_equals(nest(stripped, lowercased))))
-questions.add(Question.FRQ("to tend  to"          ,       "soler",                     filtered_equals(nest(stripped, lowercased))))
+questions.add(Question.FRQ("to tend to"          ,        "soler",                     filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("to overcome"          ,       "superar",                   filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("literate"             ,       "alfabeto",                  filtered_equals(nest(stripped, lowercased))))
 questions.add(Question.FRQ("isolated"             ,       "aislado",                   filtered_equals(nest(stripped, lowercased))))
